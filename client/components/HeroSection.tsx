@@ -13,7 +13,6 @@ import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { joinRoom, makeRoom } from "@/lib/room";
 import axios from "axios";
 
 export interface RoomProps {
@@ -38,7 +37,7 @@ export default function HeroSection() {
       router.push(`/room/${response.data.room.roomId}`);
     }
   };
-  
+
   const handleMakeRoom = async () => {
     const response = await axios.post(
       `/api/room/createroom/?userId=${session.data?.user?.id}`,

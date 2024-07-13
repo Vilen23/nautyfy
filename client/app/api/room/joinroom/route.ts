@@ -39,6 +39,6 @@ export const POST = async (req: NextRequest, res: NextResponse) => {
     return NextResponse.json({ message: "Room joined", room: userRoom });
   } catch (error) {
     console.log(error);
-    return { error: true, message: "An error occurred" };
+    return new NextResponse("Internal server error", { status: 500 });
   }
 };

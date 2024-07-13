@@ -1,7 +1,10 @@
+import Room from '@/components/Room'
 import React from 'react'
 
 export default function Page() {
   return (
-    <div>page</div>
+    <div>
+      <Room/>
+    </div>
   )
 }
