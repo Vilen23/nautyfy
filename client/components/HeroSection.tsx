@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import React from "react";
+import React, { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -13,10 +13,41 @@ import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { joinRoom, makeRoom } from "@/lib/room";
+import axios from "axios";
+
+export interface RoomProps {
+  roomName: string;
+  password: string;
+}
 
 export default function HeroSection() {
   const session = useSession();
   const router = useRouter();
+  const [roomData, setRoomData] = useState<RoomProps>({
+    roomName: "",
+    password: "",
+  });
+
+  const handleJoinRoom = async () => {
+    const response = await axios.post(
+      `/api/room/joinroom/?userId=${session.data?.user?.id}`,
+      roomData
+    );
+    if (response.status === 200) {
+      router.push(`/room/${response.data.room.roomId}`);
+    }
+  };
+  
+  const handleMakeRoom = async () => {
+    const response = await axios.post(
+      `/api/room/createroom/?userId=${session.data?.user?.id}`,
+      roomData
+    );
+    if (response.status === 200) {
+      router.push(`/room/${response.data.room.roomId}`);
+    }
+  };
   return (
     <div>
       <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 h-[80vh]">
@@ -46,9 +77,27 @@ export default function HeroSection() {
                           Make Room
                         </DialogTitle>
                         <DialogDescription className="flex flex-col gap-4">
-                          <Input type="text" placeholder="Room Name" />
-                          <Input type="password" placeholder="Password" />
-                          <Button>Create</Button>
+                          <Input
+                            onChange={(e) => {
+                              setRoomData({
+                                ...roomData,
+                                roomName: e.target.value,
+                              });
+                            }}
+                            type="text"
+                            placeholder="Room Name"
+                          />
+                          <Input
+                            onChange={(e) => {
+                              setRoomData({
+                                ...roomData,
+                                password: e.target.value,
+                              });
+                            }}
+                            type="password"
+                            placeholder="Password"
+                          />
+                          <Button onClick={handleMakeRoom}>Create</Button>
                         </DialogDescription>
                       </DialogHeader>
                     ) : (
@@ -85,9 +134,27 @@ export default function HeroSection() {
                           Join Room
                         </DialogTitle>
                         <DialogDescription className="flex flex-col gap-4">
-                          <Input type="text" placeholder="Room Name" />
-                          <Input type="password" placeholder="Password" />
-                          <Button>Join</Button>
+                          <Input
+                            onChange={(e) => {
+                              setRoomData({
+                                ...roomData,
+                                roomName: e.target.value,
+                              });
+                            }}
+                            type="text"
+                            placeholder="Room Name"
+                          />
+                          <Input
+                            onChange={(e) => {
+                              setRoomData({
+                                ...roomData,
+                                password: e.target.value,
+                              });
+                            }}
+                            type="password"
+                            placeholder="Password"
+                          />
+                          <Button onClick={handleJoinRoom}>Join</Button>
                         </DialogDescription>
                       </DialogHeader>
                     ) : (
