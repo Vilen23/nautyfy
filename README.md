@@ -1,4 +1,8 @@
 # Nauty-fy
+
+https://github.com/user-attachments/assets/f0c7d053-564e-4f58-80ce-21f3839930f3
+
+
 # How to start the project locally ?
 ## 1.Clone the repository
 ```sh
