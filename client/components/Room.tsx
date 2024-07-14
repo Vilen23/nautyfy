@@ -73,7 +73,7 @@ export default function Room() {
     ws.current.onmessage = (message) => {
       const data = JSON.parse(message.data);
       console.log(data);
-      const { type, username, userId ,from} = data;
+      const { type, username, userId, from } = data;
 
       switch (type) {
         case "ping":
