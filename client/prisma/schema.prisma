@@ -21,10 +21,10 @@ model User {
 }
 
 model Room {
-  id    String     @id @default(cuid())
-  name  String
+  id       String     @id @default(cuid())
+  name     String
   password String
-  users UserRoom[]
+  users    UserRoom[]
 }
 
 model UserRoom {

@@ -1,4 +1,5 @@
 "use client";
+import axios from "axios";
 import { useSession } from "next-auth/react";
 import React, { useEffect, useState } from "react";
 
@@ -25,7 +26,7 @@ export default function Room() {
 
       ws.onmessage = (message) => {
         const data = JSON.parse(message.data);
-        const { type, user,username } = data;
+        const { type, user, username } = data;
         switch (type) {
           case "ping":
             setNotify(true);
@@ -36,7 +37,7 @@ export default function Room() {
             }, 1000);
             break;
           case "join-room":
-            setUsers((prev) => [...prev, username]);
+            setUsers([...users, username]);
             break;
         }
       };
@@ -49,9 +50,18 @@ export default function Room() {
     }
   }, [session.data?.user.id, roomId]);
 
-  useEffect(()=>{
-
-  },[])
+  useEffect(() => {
+    //get user for new joining
+    if (!session.data?.user.id) return;
+    const getUsers = async () => {
+      const res = await axios.get(
+        `/api/users/getusers?userId=${session.data?.user.id}&roomId=${roomId}`
+      );
+      setUsers(res.data.users.map((user: any) => user.user.username));
+    };
+    getUsers();
+  }, [session.data?.user.id, roomId]);
+  if(!session.data?.user.id) return <div>loading...</div>
   return (
     <div>
       {notify && <div>{fromUser} pinged you</div>}

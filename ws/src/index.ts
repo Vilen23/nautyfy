@@ -13,7 +13,6 @@ wss.on("connection", (ws) => {
   ws.on("message", (message) => {
     const data = JSON.parse(message.toString());
     const { type, roomId, userId, targetuserId, username } = data;
-
     switch (type) {
       case "join-room":
         if (!rooms[roomId]) rooms[roomId] = [];
