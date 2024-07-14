@@ -1,3 +1,4 @@
+"use client"
 import Room from '@/components/Room'
 import React from 'react'
 
