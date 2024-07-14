@@ -13,6 +13,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import axios from "axios";
 import { signIn } from "next-auth/react";
+import { toast } from "./ui/use-toast";
+import { ToastAction } from "./ui/toast";
 interface SignInProps {
   username: string;
   password: string;
@@ -37,13 +39,39 @@ export default function SignInComponent() {
           password: signInData.password,
           redirect: false,
         });
-        console.log(response);
+        if (response?.status !== 200) {
+          toast({
+            variant: "destructive",
+            title: "Error",
+            // @ts-ignore
+            description: `${response?.error}`,
+            action: (
+              <ToastAction altText="Close notification">
+                Close notification
+              </ToastAction>
+            ),
+          });
+        }
         if (!response) return;
         if (response.status !== 200) {
           if (!response.error) setError("Somethng went wrong");
           else setError(response.error);
         } else window.location.href = "/";
       } else {
+        if (signInData.password !== signInData.confirmPassword) {
+          toast({
+            variant:"destructive",
+            title: "Error",
+            // @ts-ignore
+            description: `Password do not match`,
+            action: (
+              <ToastAction altText="Close notification">
+                Close notification
+              </ToastAction>
+            ),
+          });
+          return;
+        }
         const response = await axios.post("/api/signup", signInData);
         console.log(response);
         if (response.status === 200) {
@@ -95,6 +123,7 @@ export default function SignInComponent() {
               id="password"
               type="password"
               placeholder="Enter your password"
+              required
             />
           </div>
           {!isSignIn && (
@@ -110,6 +139,7 @@ export default function SignInComponent() {
                 id="confirm-password"
                 type="password"
                 placeholder="Confirm your password"
+                required
               />
             </div>
           )}

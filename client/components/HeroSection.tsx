@@ -14,6 +14,8 @@ import { Button } from "./ui/button";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import { toast } from "./ui/use-toast";
+import { ToastAction } from "./ui/toast";
 
 export interface RoomProps {
   roomName: string;
@@ -23,28 +25,57 @@ export interface RoomProps {
 export default function HeroSection() {
   const session = useSession();
   const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
   const [roomData, setRoomData] = useState<RoomProps>({
     roomName: "",
     password: "",
   });
 
   const handleJoinRoom = async () => {
-    const response = await axios.post(
-      `/api/room/joinroom/?userId=${session.data?.user?.id}`,
-      roomData
-    );
-    if (response.status === 200) {
-      router.push(`/room/${response.data.room.roomId}`);
+    try {
+      const response = await axios.post(
+        `/api/room/joinroom/?userId=${session.data?.user?.id}`,
+        roomData
+      );
+      if (response.status === 200) {
+        router.push(`/room/${response.data.room.roomId}`);
+      }
+    } catch (error) {
+      toast({
+        variant:"destructive",
+        title: "Error",
+        // @ts-ignore
+        description: `${error.response.data}`,
+        action: (
+          <ToastAction altText="Close notification">
+            Close notification
+          </ToastAction>
+        ),
+      });
     }
   };
 
   const handleMakeRoom = async () => {
-    const response = await axios.post(
-      `/api/room/createroom/?userId=${session.data?.user?.id}`,
-      roomData
-    );
-    if (response.status === 200) {
-      router.push(`/room/${response.data.room.roomId}`);
+    try {
+      const response = await axios.post(
+        `/api/room/createroom/?userId=${session.data?.user?.id}`,
+        roomData
+      );
+      if (response.status === 200) {
+        router.push(`/room/${response.data.room.roomId}`);
+      }
+    } catch (error) {
+      toast({
+        variant:"destructive",
+        title: "Error",
+        // @ts-ignore
+        description: `${error.response.data}`,
+        action: (
+          <ToastAction altText="Close notification">
+            Close notification
+          </ToastAction>
+        ),
+      });
     }
   };
   return (
