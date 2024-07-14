@@ -41,7 +41,6 @@ export const NEXT_AUTH = {
   callbacks: {
     async jwt({ token, user }: any) {
       if (user) {
-        console.log(user);
         token.id = user.id;
         token.username = user.username;
       }

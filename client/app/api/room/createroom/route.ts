@@ -9,7 +9,7 @@ const roomSchema = z.object({
 
 export const POST = async (req: NextRequest, res: NextResponse) => {
   try {
-    const url = new URL(req.nextUrl);
+    const url = new URL(req.url);
     const roomData = await req.json();
     const { roomName, password } = roomData;
 
@@ -17,7 +17,6 @@ export const POST = async (req: NextRequest, res: NextResponse) => {
     if (!valid) return new NextResponse("Invalid data", { status: 400 });
 
     const userId = url.searchParams.get("userId");
-    console.log(userId);
     if (!userId) return new NextResponse("User not found", { status: 404 });
     const findUser = await db.user.findFirst({
       where: {

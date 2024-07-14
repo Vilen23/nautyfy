@@ -8,7 +8,7 @@ const roomSchema = z.object({
 });
 export const POST = async (req: NextRequest, res: NextResponse) => {
   try {
-    const url = new URL(req.nextUrl);
+    const url = new URL(req.url);
     const roomData = await req.json();
     const { roomName, password } = roomData;
     const valid = roomSchema.safeParse(roomData);

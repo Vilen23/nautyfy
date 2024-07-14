@@ -3,10 +3,9 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const GET = async (req: NextRequest, res: NextResponse) => {
   try {
-    const url = new URL(req.nextUrl);
+    const url = new URL(req.url);
     const userId = url.searchParams.get("userId");
     const roomId = url.searchParams.get("roomId");
-    console.log(userId, roomId);
     if (!userId) {
       return new NextResponse("User Id is required", { status: 400 });
     }

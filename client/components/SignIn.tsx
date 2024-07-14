@@ -73,7 +73,6 @@ export default function SignInComponent() {
           return;
         }
         const response = await axios.post("/api/signup", signInData);
-        console.log(response);
         if (response.status === 200) {
           setIsSignIn(true);
         }

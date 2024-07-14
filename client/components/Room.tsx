@@ -31,7 +31,6 @@ export default function Room() {
         const res = await axios.get(
           `/api/users/getusers?userId=${session.user.id}&roomId=${roomId}`
         );
-        console.log(res.data);
         const fetchedUsers = res.data.users.map((user: any) => {
           return {
             username: user.user.username,
@@ -57,7 +56,7 @@ export default function Room() {
       ws.current.close();
     }
 
-    ws.current = new WebSocket("ws://localhost:8080");
+    ws.current = new WebSocket(`${process.env.NEXT_PUBLIC_WS}`);
 
     ws.current.onopen = () => {
       ws.current?.send(
@@ -72,12 +71,10 @@ export default function Room() {
 
     ws.current.onmessage = (message) => {
       const data = JSON.parse(message.data);
-      console.log(data);
       const { type, username, userId, from } = data;
 
       switch (type) {
         case "ping":
-          console.log("gotpined");
           setNotify(true);
           setFromUser(from);
           setTimeout(() => {
@@ -106,10 +103,9 @@ export default function Room() {
     return () => {
       ws.current?.close();
     };
-  }, [status, session?.user?.id, roomId]);
+  }, [status, session?.user?.id, roomId, session?.user.name]);
 
   const handleJoin = (username: string, userId: string) => {
-    console.log(usersRef.current);
     const userExists = usersRef.current.some(
       (user) => user.username === username && user.userId === userId
     );
@@ -121,7 +117,6 @@ export default function Room() {
   };
 
   const sendPing = (userId: string) => {
-    console.log(ws.current);
     ws.current?.send(
       JSON.stringify({
         type: "ping",
@@ -132,7 +127,7 @@ export default function Room() {
       })
     );
   };
-  console.log(users);
+  
   if (loading) return <div>Loading....</div>;
   if (!session?.user?.id || !roomId) return <div>Loading...</div>;
   return (
@@ -140,13 +135,11 @@ export default function Room() {
       <div className="w-full max-w-4xl px-4 sm:px-6 lg:px-8 ">
         <div className="flex flex-wrap justify-center items-center gap-6 ">
           {users.map((user) => (
-            <Card className="bg-card text-card-foreground shadow-sm min-w-[200px]">
+            <Card
+              key={user.userId}
+              className="bg-card text-card-foreground shadow-sm min-w-[200px]"
+            >
               <div className="flex flex-col items-center justify-center p-6 space-y-4 relative">
-                {/* {session.user.name === user && (
-                  <p className=" right-[10px] absolute top-0 text-red-500 font-semibold">
-                    You
-                  </p>
-                )} */}
                 <Avatar>
                   <AvatarImage src="/placeholder-user.jpg" />
                   <AvatarFallback>{user.username[0]}</AvatarFallback>
