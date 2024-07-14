@@ -3,6 +3,7 @@ import { Work_Sans } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import { Provider } from "@/lib/provider";
+import { Toaster } from "@/components/ui/toaster";
 
 const inter = Work_Sans({ subsets: ["latin"] });
 
@@ -22,6 +23,7 @@ export default function RootLayout({
         <Provider>
           <Navbar />
           {children}
+          <Toaster/>
         </Provider>
       </body>
     </html>

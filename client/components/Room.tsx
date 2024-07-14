@@ -5,6 +5,8 @@ import React, { useEffect, useState, useRef } from "react";
 import { Card, CardContent } from "./ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
+import { ToastAction } from "./ui/toast";
+import { toast } from "./ui/use-toast";
 
 interface UserProps {
   username: string;
@@ -18,7 +20,7 @@ export default function Room() {
   const [fromUser, setFromUser] = useState("");
   const [users, setUsers] = useState<UserProps[]>([]);
   const [loading, setLoading] = useState(true);
-  const usersRef = useRef<string[]>([]);
+  const usersRef = useRef<UserProps[]>([]);
   const ws = useRef<WebSocket | null>(null);
 
   useEffect(() => {
@@ -29,10 +31,13 @@ export default function Room() {
         const res = await axios.get(
           `/api/users/getusers?userId=${session.user.id}&roomId=${roomId}`
         );
-        const fetchedUsers = res.data.users.map((user: any) => ({
-          username: user.user.username,
-          userId: user.user.userId,
-        }));
+        console.log(res.data);
+        const fetchedUsers = res.data.users.map((user: any) => {
+          return {
+            username: user.user.username,
+            userId: user.user.id,
+          };
+        });
         setUsers(fetchedUsers);
         usersRef.current = fetchedUsers;
       } catch (error) {
@@ -68,21 +73,30 @@ export default function Room() {
     ws.current.onmessage = (message) => {
       const data = JSON.parse(message.data);
       console.log(data);
-      const { type, username, user } = data;
+      const { type, username, userId ,from} = data;
 
       switch (type) {
         case "ping":
           console.log("gotpined");
           setNotify(true);
-          setFromUser(username);
+          setFromUser(from);
           setTimeout(() => {
             setNotify(false);
             setFromUser("");
           }, 1000);
+          toast({
+            title: "You received a notification",
+            description: `From: ${from}`,
+            action: (
+              <ToastAction altText="Close notification">
+                Close notification
+              </ToastAction>
+            ),
+          });
           break;
         case "join-room":
           console.log(data);
-          handleJoin(username, user);
+          handleJoin(username, userId);
           break;
         default:
           break;
@@ -96,9 +110,13 @@ export default function Room() {
 
   const handleJoin = (username: string, userId: string) => {
     console.log(usersRef.current);
-    if (!usersRef.current.includes(username)) {
+    const userExists = usersRef.current.some(
+      (user) => user.username === username && user.userId === userId
+    );
+
+    if (!userExists) {
       setUsers((prev) => [...prev, { username, userId }]);
-      usersRef.current.push(username);
+      usersRef.current.push({ username, userId });
     }
   };
 
@@ -114,7 +132,7 @@ export default function Room() {
       })
     );
   };
-  // console.log(users);
+  console.log(users);
   if (loading) return <div>Loading....</div>;
   if (!session?.user?.id || !roomId) return <div>Loading...</div>;
   return (
@@ -145,7 +163,10 @@ export default function Room() {
                     You
                   </Button>
                 ) : (
-                  <Button variant="outline" onClick={sendPing(user.userId)}>
+                  <Button
+                    variant="outline"
+                    onClick={() => sendPing(user.userId)}
+                  >
                     Notify
                   </Button>
                 )}

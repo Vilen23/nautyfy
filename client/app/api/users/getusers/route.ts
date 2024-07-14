@@ -40,6 +40,7 @@ export const GET = async (req: NextRequest, res: NextResponse) => {
             user: {
               select: {
                 username: true,
+                id:true
               },
             },
           },
