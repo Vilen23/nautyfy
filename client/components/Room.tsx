@@ -2,26 +2,37 @@
 import axios from "axios";
 import { useSession } from "next-auth/react";
 import React, { useEffect, useState, useRef } from "react";
+import { Card, CardContent } from "./ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { Button } from "./ui/button";
+
+interface UserProps {
+  username: string;
+  userId: string;
+}
 
 export default function Room() {
   const { data: session, status } = useSession();
-  const roomId = window.location.pathname.split("/")[2];
+  const [roomId, setRoomId] = useState<string | null>(null);
   const [notify, setNotify] = useState(false);
   const [fromUser, setFromUser] = useState("");
-  const [users, setUsers] = useState<string[]>([]);
+  const [users, setUsers] = useState<UserProps[]>([]);
   const [loading, setLoading] = useState(true);
   const usersRef = useRef<string[]>([]);
   const ws = useRef<WebSocket | null>(null);
 
   useEffect(() => {
-    if (status === "loading" || !session?.user?.id || !roomId) return;
-
+    setRoomId(window.location.pathname.split("/")[2]);
+    if (!session?.user?.id || !roomId) return;
     const getUsers = async () => {
       try {
         const res = await axios.get(
           `/api/users/getusers?userId=${session.user.id}&roomId=${roomId}`
         );
-        const fetchedUsers = res.data.users.map((user: any) => user.user.username);
+        const fetchedUsers = res.data.users.map((user: any) => ({
+          username: user.user.username,
+          userId: user.user.userId,
+        }));
         setUsers(fetchedUsers);
         usersRef.current = fetchedUsers;
       } catch (error) {
@@ -32,7 +43,7 @@ export default function Room() {
     };
 
     getUsers();
-  }, [status, session?.user?.id, roomId]);
+  }, [session?.user?.id, roomId]);
 
   useEffect(() => {
     if (status === "loading" || !session?.user?.id || !roomId) return;
@@ -57,10 +68,11 @@ export default function Room() {
     ws.current.onmessage = (message) => {
       const data = JSON.parse(message.data);
       console.log(data);
-      const { type, username } = data;
+      const { type, username, user } = data;
 
       switch (type) {
         case "ping":
+          console.log("gotpined");
           setNotify(true);
           setFromUser(username);
           setTimeout(() => {
@@ -69,7 +81,8 @@ export default function Room() {
           }, 1000);
           break;
         case "join-room":
-          handleJoin(username);
+          console.log(data);
+          handleJoin(username, user);
           break;
         default:
           break;
@@ -81,24 +94,66 @@ export default function Room() {
     };
   }, [status, session?.user?.id, roomId]);
 
-  const handleJoin = (username: string) => {
+  const handleJoin = (username: string, userId: string) => {
     console.log(usersRef.current);
     if (!usersRef.current.includes(username)) {
-      setUsers((prev) => [...prev, username]);
+      setUsers((prev) => [...prev, { username, userId }]);
       usersRef.current.push(username);
     }
   };
 
+  const sendPing = (userId: string) => {
+    console.log(ws.current);
+    ws.current?.send(
+      JSON.stringify({
+        type: "ping",
+        roomId: roomId,
+        userId: session?.user.id,
+        username: session?.user.name,
+        targetuserId: userId,
+      })
+    );
+  };
+  // console.log(users);
   if (loading) return <div>Loading....</div>;
   if (!session?.user?.id || !roomId) return <div>Loading...</div>;
-
   return (
-    <div>
-      {notify && <div>{fromUser} pinged you</div>}
-      <div>Users in the room:</div>
-      {users.map((user) => (
-        <div key={user}>{user}</div>
-      ))}
-    </div>
+    <main className="flex flex-col items-center justify-center h-[80vh] bg-background">
+      <div className="w-full max-w-4xl px-4 sm:px-6 lg:px-8 ">
+        <div className="flex flex-wrap justify-center items-center gap-6 ">
+          {users.map((user) => (
+            <Card className="bg-card text-card-foreground shadow-sm min-w-[200px]">
+              <div className="flex flex-col items-center justify-center p-6 space-y-4 relative">
+                {/* {session.user.name === user && (
+                  <p className=" right-[10px] absolute top-0 text-red-500 font-semibold">
+                    You
+                  </p>
+                )} */}
+                <Avatar>
+                  <AvatarImage src="/placeholder-user.jpg" />
+                  <AvatarFallback>{user.username[0]}</AvatarFallback>
+                </Avatar>
+                <div className="text-center">
+                  <h3 className="text-lg font-semibold">{user.username}</h3>
+                </div>
+                {session.user.id === user.userId ? (
+                  <Button
+                    variant="outline"
+                    disabled
+                    className="text-red-500 font-semibold"
+                  >
+                    You
+                  </Button>
+                ) : (
+                  <Button variant="outline" onClick={sendPing(user.userId)}>
+                    Notify
+                  </Button>
+                )}
+              </div>
+            </Card>
+          ))}
+        </div>
+      </div>
+    </main>
   );
 }

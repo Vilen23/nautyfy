@@ -20,19 +20,19 @@ wss.on("connection", (ws) => {
           rooms[roomId].push({ userId, ws });
           users[userId] = { roomId, ws, username };
         }
+        console.log(userId);
         rooms[roomId].forEach((user) => {
-          if (user.userId !== userId) {
-            user.ws.send(
-              JSON.stringify({
-                type: "join-room",
-                user: userId,
-                username: username,
-              })
-            );
-          }
+          user.ws.send(
+            JSON.stringify({
+              type: "join-room",
+              user: userId,
+              username: username,
+            })
+          );
         });
         break;
       case "ping":
+        console.log("ping");
         if (users[targetuserId] && users[targetuserId].roomId === roomId) {
           users[targetuserId].ws.send(
             JSON.stringify({ type: "ping", user: userId })

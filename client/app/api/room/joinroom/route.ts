@@ -11,6 +11,7 @@ export const POST = async (req: NextRequest, res: NextResponse) => {
     const url = new URL(req.nextUrl);
     const roomData = await req.json();
     const { roomName, password } = roomData;
+    console.log(roomData);
     const valid = roomSchema.safeParse(roomData);
     if (!valid) return new NextResponse("Invalid data", { status: 400 });
 
@@ -30,6 +31,18 @@ export const POST = async (req: NextRequest, res: NextResponse) => {
     if (!findRoom) return new NextResponse("Room not found", { status: 404 });
     if (findRoom.password !== password)
       return { error: true, message: "Invalid password" };
+
+    const userinRoom = await db.userRoom.findFirst({
+      where: {
+        userId: findUser.id,
+        roomId: findRoom.id,
+      },
+    });
+    if (userinRoom)
+      return NextResponse.json({
+        message: "User already in room",
+        room: userinRoom,
+      });
     const userRoom = await db.userRoom.create({
       data: {
         userId: findUser.id,
